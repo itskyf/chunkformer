@@ -130,3 +130,16 @@ def test_speed_perturb_changes_duration_without_changing_sample_rate(wav_path: P
     assert result["sample_rate"] == 8000
     assert new_duration == pytest.approx(original_duration / 1.1, rel=0.02)
     assert torch.isfinite(result["wav"]).all()
+
+
+def test_distortion_audio_file_round_trip(wav_path: Path, tmp_path: Path):
+    from chunkformer.dataset.wav_distortion import distort_wav_conf_and_save
+
+    output = tmp_path / "distorted.wav"
+    distort_wav_conf_and_save("none_distortion", None, 0.0, str(wav_path), str(output))
+    decoded = AudioDecoder(str(output)).get_all_samples()
+
+    assert output.is_file()
+    assert decoded.sample_rate == 8000
+    assert decoded.data.shape[0] == 2
+    assert abs(decoded.data.shape[1] / decoded.sample_rate - 1.0) < 0.01
