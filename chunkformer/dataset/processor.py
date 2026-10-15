@@ -26,7 +26,6 @@ import torch.nn.functional as F
 import torchaudio
 import torchaudio.compliance.kaldi as kaldi
 from torch.nn.utils.rnn import pad_sequence
-from torchcodec.decoders import AudioDecoder
 
 from chunkformer.text.base_tokenizer import BaseTokenizer
 
@@ -110,6 +109,8 @@ def decode_wav(sample):
     """
     assert "key" in sample
     assert "wav" in sample
+    from torchcodec.decoders import AudioDecoder
+
     decoder = AudioDecoder(sample["wav"])
     if "start" in sample:
         assert "end" in sample

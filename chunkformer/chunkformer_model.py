@@ -15,7 +15,6 @@ import torchaudio.compliance.kaldi as kaldi
 import yaml
 from colorama import Fore, Style
 from huggingface_hub import snapshot_download
-from torchcodec.decoders import AudioDecoder
 from tqdm import tqdm
 from transformers import PretrainedConfig, PreTrainedModel
 from transformers.utils import logging
@@ -293,6 +292,8 @@ class ChunkFormerModel(PreTrainedModel):
         frame_length = fbank_conf.get("frame_length", 25)
         frame_shift = fbank_conf.get("frame_shift", 10)
         dither = 0.0
+
+        from torchcodec.decoders import AudioDecoder
 
         # TorchCodec outputs normalized float samples; Kaldi fbank expects PCM-scale values.
         samples = AudioDecoder(
