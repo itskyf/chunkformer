@@ -39,18 +39,14 @@ def test_decode_wav_path_and_bytes(wav_path: Path):
 
 
 def test_decode_wav_range(wav_path: Path):
-    sample = decode_wav(
-        {"key": "clip", "wav": wav_path.read_bytes(), "start": 0.25, "end": 0.75}
-    )
+    sample = decode_wav({"key": "clip", "wav": wav_path.read_bytes(), "start": 0.25, "end": 0.75})
     assert sample["sample_rate"] == 8000
     assert sample["wav"].shape[0] == 2
     assert abs(sample["wav"].shape[1] / sample["sample_rate"] - 0.5) < 0.01
 
 
 def test_mono_resampling_and_kaldi_pcm_scaling(wav_path: Path):
-    decoded = AudioDecoder(
-        str(wav_path), sample_rate=16000, num_channels=1
-    ).get_all_samples()
+    decoded = AudioDecoder(str(wav_path), sample_rate=16000, num_channels=1).get_all_samples()
     assert decoded.sample_rate == 16000
     assert decoded.data.shape == (1, 16000)
     assert decoded.data.dtype == torch.float32
@@ -84,16 +80,12 @@ def test_model_feature_extraction_uses_pcm_scale(wav_path: Path):
         ),
         device=torch.device("cpu"),
     )
-    features, length = ChunkFormerModel._load_audio_and_extract_features(
-        model, str(wav_path)
-    )
+    features, length = ChunkFormerModel._load_audio_and_extract_features(model, str(wav_path))
     assert features.shape == (length, 80)
     assert length > 0
     assert torch.isfinite(features).all()
 
-    decoded = AudioDecoder(
-        str(wav_path), sample_rate=16000, num_channels=1
-    ).get_all_samples()
+    decoded = AudioDecoder(str(wav_path), sample_rate=16000, num_channels=1).get_all_samples()
     expected = kaldi.fbank(
         decoded.data * (1 << 15),
         sample_frequency=16000,
