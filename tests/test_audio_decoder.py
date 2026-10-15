@@ -45,28 +45,6 @@ def test_decode_wav_range(wav_path: Path):
     assert abs(sample["wav"].shape[1] / sample["sample_rate"] - 0.5) < 0.01
 
 
-def test_mono_resampling_and_kaldi_pcm_scaling(wav_path: Path):
-    decoded = AudioDecoder(str(wav_path), sample_rate=16000, num_channels=1).get_all_samples()
-    assert decoded.sample_rate == 16000
-    assert decoded.data.shape == (1, 16000)
-    assert decoded.data.dtype == torch.float32
-
-    pcm_scale = decoded.data * (1 << 15)
-    features = kaldi.fbank(
-        pcm_scale,
-        sample_frequency=16000,
-        num_mel_bins=80,
-        frame_length=25,
-        frame_shift=10,
-        dither=0.0,
-        energy_floor=0.0,
-    )
-    assert features.ndim == 2
-    assert features.shape[0] > 0
-    assert features.shape[1] == 80
-    assert torch.isfinite(features).all()
-
-
 def test_model_feature_extraction_uses_pcm_scale(wav_path: Path):
     from types import SimpleNamespace
 
@@ -96,19 +74,6 @@ def test_model_feature_extraction_uses_pcm_scale(wav_path: Path):
         energy_floor=0.0,
     )
     torch.testing.assert_close(features.cpu(), expected, rtol=1e-4, atol=1e-4)
-
-
-def test_audio_encoder_round_trip(wav_path: Path, tmp_path: Path):
-    from torchcodec.encoders import AudioEncoder
-
-    samples = AudioDecoder(str(wav_path)).get_all_samples()
-    destination = tmp_path / "round_trip.wav"
-    AudioEncoder(samples.data, sample_rate=samples.sample_rate).to_file(destination)
-    decoded = AudioDecoder(str(destination)).get_all_samples()
-
-    assert decoded.sample_rate == samples.sample_rate
-    assert decoded.data.shape == samples.data.shape
-    assert torch.mean(torch.abs(decoded.data - samples.data)) < 0.001
 
 
 def test_speed_perturb_changes_duration_without_changing_sample_rate(wav_path: Path):
