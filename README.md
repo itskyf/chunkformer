@@ -75,6 +75,14 @@ cd chunkformer
 pip install -e .
 ```
 
+### Audio decoding (TorchCodec)
+
+ChunkFormer uses [TorchCodec](https://github.com/meta-pytorch/torchcodec) to decode audio files, resample and select mono audio. The Python package no longer depends on Pydub or the removed Python `audioop` module.
+
+TorchCodec requires a compatible PyTorch build **and FFmpeg shared libraries**. Match TorchCodec and PyTorch releases using the [official compatibility table](https://github.com/meta-pytorch/torchcodec#compatibility-with-torch-versions) and ensure FFmpeg is available in the runtime environment. TorchAudio remains a dependency for signal processing and Kaldi filterbanks.
+
+TorchCodec returns normalized float waveforms. ChunkFormer converts to PCM scale (`waveform * 32768`) before Kaldi filterbank extraction to preserve its model feature convention.
+
 ### Pretrained Models
 | Language | Model |
 |----------|-------|

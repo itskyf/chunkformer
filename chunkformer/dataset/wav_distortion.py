@@ -17,7 +17,8 @@ import random
 import sys
 
 import torch
-import torchaudio
+from torchcodec.decoders import AudioDecoder
+from torchcodec.encoders import AudioEncoder
 
 
 def db2amp(db):
@@ -314,10 +315,9 @@ def distort_wav_conf(x, distort_type, distort_conf, rate=0.1):
 
 
 def distort_wav_conf_and_save(distort_type, distort_conf, rate, wav_in, wav_out):
-    x, sr = torchaudio.load(wav_in)
-    x = x.detach().numpy()
-    out = distort_wav_conf(x, distort_type, distort_conf, rate)
-    torchaudio.save(wav_out, torch.from_numpy(out), sr)
+    samples = AudioDecoder(wav_in).get_all_samples()
+    out = distort_wav_conf(samples.data.numpy(), distort_type, distort_conf, rate)
+    AudioEncoder(torch.as_tensor(out, dtype=torch.float32), samples.sample_rate).to_file(wav_out)
 
 
 if __name__ == "__main__":
